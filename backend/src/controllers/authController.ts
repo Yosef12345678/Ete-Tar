@@ -44,7 +44,18 @@ export const register = async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
-
+const generateRefreshToken = (userId: string) => {
+  const refreshSecret = process.env.REFRESH_TOKEN_SECRET?.trim();
+  if (!refreshSecret) {
+    throw new Error('REFRESH_TOKEN_SECRET is not set');
+  }
+  
+  return jwt.sign(
+    { userId },
+    refreshSecret,
+    { expiresIn: '7d' }
+  );
+};
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body as {
@@ -85,10 +96,14 @@ export const login = async (req: Request, res: Response) => {
       jwtSecret,
       { expiresIn: '1h' }
     );
+    const refreshToken = generateRefreshToken(user.id);
+
+    await user.update({ refresh_token: refreshToken });
 
     return res.json({
       message: 'Login successful',
       token,
+      refreshToken,
       user: {
         id: user.id,
         email: user.email,

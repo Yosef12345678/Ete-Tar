@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '../config/database';
 
@@ -6,6 +7,7 @@ class User extends Model {
   declare email: string;
   declare password_hash: string;
   declare role: string;
+  declare refresh_token: string | null;
   declare readonly created_at: Date;
   declare readonly updated_at: Date;
 }
@@ -35,6 +37,10 @@ User.init(
       validate: {
         isIn: [['user', 'admin']],
       },
+    },
+    refresh_token: {
+      type: DataTypes.TEXT,
+      allowNull: true,
     },
   },
   {
